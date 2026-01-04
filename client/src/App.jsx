@@ -144,8 +144,13 @@ function App() {
   // He puesto 'http://localhost:3001' por defecto para que te funcione AHORA en local.
   // Cuando despliegues, usa Ctrl+H para cambiar 'http://localhost:3001' por tu URL de Render.
   
-  const BASE_URL = 'http://localhost:3001'; // <--- CAMBIA ESTO CUANDO TENGAS LA URL DE RENDER
+  // 🏠 MODO LOCAL (Comenta esta línea poniéndole // delante):
+  // const API_URL = 'http://localhost:3001';
 
+  // ☁️ MODO NUBE (Descomenta esta y pon tu URL):
+  const API_URL = 'https://api-gym-fitness.onrender.com';
+
+  
   const handleCreateClient = async (e) => {
     e.preventDefault()
     try {
