@@ -5,13 +5,13 @@ import './App.css'
 // --- 🔒 CONTRASEÑA MAESTRA ---
 const APP_PASSWORD = import.meta.env.VITE_APP_PASSWORD;
 
-// --- 🌍 CONFIGURACIÓN DE CONEXIÓN (PONLO AQUÍ ARRIBA) ---
+// --- 🌍 CONFIGURACIÓN DE CONEXIÓN ---
 
 // 🏠 MODO LOCAL (Para probar en tu PC - Comenta la de abajo y descomenta esta):
 // const API_URL = 'http://localhost:3001';
 
 // ☁️ MODO NUBE (Para Internet - Descomenta esta y comenta la de arriba):
-const API_URL = 'https://api-gym-fitness.onrender.com'; // <--- ¡TU URL CORRECTA!
+const API_URL = 'https://api-gym-fitness.onrender.com'; // <--- TU URL CORRECTA
 
 
 function App() {
@@ -104,9 +104,9 @@ function App() {
     }
   }, [currentView, isAuthenticated]);
 
-  // --- FUNCIONES DE CARGA DE DATOS (AHORA USAN API_URL) ---
+  // --- FUNCIONES DE CARGA DE DATOS ---
   const fetchPlans = () => {
-    fetch(`${API_URL}/api/plans`) // <--- Corregido
+    fetch(`${API_URL}/api/plans`)
       .then(res => res.json())
       .then(data => setPlans(data))
       .catch(console.error)
@@ -114,14 +114,14 @@ function App() {
 
   const loadVisits = () => {
     const timestamp = new Date().getTime(); 
-    fetch(`${API_URL}/api/visits?t=${timestamp}`) // <--- Corregido
+    fetch(`${API_URL}/api/visits?t=${timestamp}`)
       .then(res => res.json())
       .then(data => setVisits(data))
       .catch(console.error)
   }
 
   const loadAllClients = () => {
-    fetch(`${API_URL}/api/clients-all`) // <--- Corregido
+    fetch(`${API_URL}/api/clients-all`)
       .then(res => res.json())
       .then(data => setAllClients(data))
       .catch(console.error)
@@ -129,7 +129,7 @@ function App() {
 
   const loadStats = async () => {
     try {
-        const res = await fetch(`${API_URL}/api/stats`); // <--- Corregido
+        const res = await fetch(`${API_URL}/api/stats`);
         const data = await res.json();
         setStats(data);
     } catch (error) { console.error(error); }
@@ -139,7 +139,7 @@ function App() {
     setLoading(true)
     try {
       const timestamp = new Date().getTime()
-      const response = await fetch(`${API_URL}/api/search?q=${query}&t=${timestamp}`) // <--- Corregido
+      const response = await fetch(`${API_URL}/api/search?q=${query}&t=${timestamp}`)
       const data = await response.json()
       setResults(data)
     } catch (error) { console.error(error) } 
@@ -151,7 +151,6 @@ function App() {
   const handleCreateClient = async (e) => {
     e.preventDefault()
     try {
-      // AQUÍ ANTES PONÍA BASE_URL (ERROR), AHORA API_URL (BIEN)
       const response = await fetch(`${API_URL}/api/clients`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -423,31 +422,55 @@ function App() {
         </div>
       )}
 
+      {/* --- MODAL EDITAR MEJORADO PARA MÓVIL (Con Scroll y Compacto) --- */}
       {editingClient && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>📝 Modificar Datos</h2>
+          <div className="modal-content" style={{ maxHeight: '85vh', overflowY: 'auto', padding: '20px' }}>
+            <h2 style={{ marginTop: 0 }}>📝 Modificar Datos</h2>
             <form onSubmit={handleUpdateClient} className="form-group">
-              <label style={{fontWeight:'bold', fontSize:'0.9rem'}}>Nombre:</label>
-              <input className="form-input" value={editingClient.first_name} onChange={e => setEditingClient({...editingClient, first_name: e.target.value})} />
-              <label style={{fontWeight:'bold', fontSize:'0.9rem'}}>Apellidos:</label>
-              <input className="form-input" value={editingClient.last_name} onChange={e => setEditingClient({...editingClient, last_name: e.target.value})} />
-              <label style={{fontWeight:'bold', fontSize:'0.9rem'}}>Email:</label>
-              <input className="form-input" value={editingClient.email} onChange={e => setEditingClient({...editingClient, email: e.target.value})} />
-              <label style={{fontWeight:'bold', fontSize:'0.9rem'}}>Teléfono:</label>
-              <input className="form-input" value={editingClient.phone} onChange={e => setEditingClient({...editingClient, phone: e.target.value})} />
-              <label style={{fontWeight:'bold', fontSize:'0.9rem'}}>DNI:</label>
-              <input className="form-input" value={editingClient.dni || ''} onChange={e => setEditingClient({...editingClient, dni: e.target.value})} />
-              <label style={{fontWeight:'bold', fontSize:'0.9rem', marginTop:'10px', display:'block', color:'#2563eb'}}>📅 Vencimiento (Modificar):</label>
-              <input type="date" className="form-input" value={editingClient.expiration_date || ''} onChange={e => setEditingClient({...editingClient, expiration_date: e.target.value})} />
-              <p style={{fontSize:'0.8rem', color:'#666', marginTop:'5px'}}>Cambiar esto alargará o acortará su suscripción actual.</p>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button type="submit" className="action-btn" style={{flex:1}}>Guardar Cambios</button>
+              
+              {/* FILA 1: Nombre y Apellidos (Juntos) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                      <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Nombre:</label>
+                      <input className="form-input" value={editingClient.first_name} onChange={e => setEditingClient({...editingClient, first_name: e.target.value})} />
+                  </div>
+                  <div>
+                      <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Apellidos:</label>
+                      <input className="form-input" value={editingClient.last_name} onChange={e => setEditingClient({...editingClient, last_name: e.target.value})} />
+                  </div>
+              </div>
+
+              {/* FILA 2: DNI y Teléfono (Juntos) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+                  <div>
+                    <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>DNI:</label>
+                    <input className="form-input" value={editingClient.dni || ''} onChange={e => setEditingClient({...editingClient, dni: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Teléfono:</label>
+                    <input className="form-input" value={editingClient.phone} onChange={e => setEditingClient({...editingClient, phone: e.target.value})} />
+                  </div>
+              </div>
+
+              <div style={{ marginTop: '10px' }}>
+                  <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Email:</label>
+                  <input className="form-input" value={editingClient.email} onChange={e => setEditingClient({...editingClient, email: e.target.value})} />
+              </div>
+              
+              <div style={{ marginTop: '15px', backgroundColor: '#eff6ff', padding: '10px', borderRadius: '6px' }}>
+                  <label style={{fontWeight:'bold', fontSize:'0.9rem', color:'#2563eb', display:'block'}}>📅 Nuevo Vencimiento:</label>
+                  <input type="date" className="form-input" value={editingClient.expiration_date || ''} onChange={e => setEditingClient({...editingClient, expiration_date: e.target.value})} style={{marginTop:'5px'}} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button type="submit" className="action-btn" style={{flex:1}}>Guardar</button>
                 <button type="button" onClick={() => setEditingClient(null)} className="nav-btn" style={{flex:1, background:'#ccc'}}>Cancelar</button>
               </div>
             </form>
+            
             <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                <button type="button" onClick={handleDeleteClient} style={{ width: '100%', padding: '10px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>🗑️ Eliminar este Cliente</button>
+                <button type="button" onClick={handleDeleteClient} style={{ width: '100%', padding: '12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>🗑️ Eliminar este Cliente</button>
             </div>
           </div>
         </div>
