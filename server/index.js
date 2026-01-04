@@ -279,7 +279,17 @@ app.get('/api/clients-all', async (req, res) => {
     }
 });
 
+// --- BLOQUE FINAL CORREGIDO PARA RENDER ---
+
+// 1. Ruta raíz para saber si está vivo (Evita el 404 en la página principal)
+app.get('/', (req, res) => {
+    res.send('✅ ¡El servidor del gimnasio funciona correctamente!');
+});
+
+// 2. Configuración del puerto BLINDADA
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Servidor API corriendo en puerto ${PORT}`);
+
+// 3. '0.0.0.0' es OBLIGATORIO en Render para que escuche desde fuera
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor API corriendo y escuchando en el puerto ${PORT}`);
 });
