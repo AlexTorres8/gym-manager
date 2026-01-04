@@ -1,0 +1,299 @@
+/* client/src/App.css */
+
+/* --- 1. ESTILOS GENERALES (BASE) --- */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f3f4f6; /* Fondo gris suave para que destaque el contenido en PC */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* El contenedor principal es como una "hoja" de papel en el centro */
+.main-container {
+  max-width: 1100px; /* Ancho máximo para que no se estire infinito en pantallas grandes */
+  width: 90%;
+  margin: 40px auto; /* Centrado vertical y horizontal */
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra elegante */
+  min-height: 80vh;
+}
+
+/* --- 2. NAVEGACIÓN SUPERIOR --- */
+.nav-header {
+  display: flex;
+  justify-content: space-between; /* Título a la izq, botones a la der */
+  align-items: center;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.nav-title {
+  margin: 0;
+  color: #111827;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.nav-buttons-group {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* --- 3. CABECERA DE SECCIÓN Y BUSCADOR --- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #374151;
+}
+
+.action-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+  transition: background 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 500px; /* En PC no ocupa todo el ancho, solo 500px */
+  padding: 14px 18px;
+  font-size: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  margin-bottom: 30px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: white;
+}
+
+/* --- 4. TARJETAS DE USUARIO (EL LISTADO) --- */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-card {
+  display: flex;
+  justify-content: space-between; /* Datos a la izq, Botones a la der */
+  align-items: center;
+  padding: 20px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition: box-shadow 0.2s;
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.card-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Etiquetas de estado */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- 5. ESTADÍSTICAS Y TABLAS --- */
+.stats-kpi-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 Columnas exactas */
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.chart-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 30px;
+}
+
+.visits-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.visits-table th {
+  text-align: left;
+  padding: 15px;
+  background-color: #f9fafb;
+  color: #4b5563;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.visits-table td {
+  padding: 15px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+/* --- 6. MODALES --- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px); /* Efecto borroso elegante detrás */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  width: 450px;
+  max-width: 90%;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.form-input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+/* ==================================================
+   📱 VISTA MÓVIL (MEDIA QUERY)
+   Aquí sobreescribimos SOLO lo necesario para móvil
+   ================================================== */
+@media (max-width: 768px) {
+  
+  body {
+    background-color: white; /* En móvil quitamos el gris para aprovechar espacio */
+  }
+
+  .main-container {
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+  }
+
+  /* Cabecera apilada */
+  .nav-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .nav-buttons-group {
+    width: 100%;
+  }
+
+  .nav-btn {
+    flex: 1; /* Botones ocupan todo el ancho compartido */
+    text-align: center;
+    padding: 12px;
+  }
+
+  .search-input {
+    max-width: 100%; /* Buscador ancho completo en móvil */
+  }
+
+  /* Tarjetas verticales */
+  .user-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .card-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .card-actions button {
+    flex: 1;
+    padding: 12px;
+  }
+
+  /* Estadísticas verticales */
+  .stats-kpi-container {
+    grid-template-columns: 1fr; /* 1 sola columna */
+  }
+}
