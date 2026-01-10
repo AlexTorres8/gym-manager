@@ -52,16 +52,7 @@ El proyecto está construido utilizando la arquitectura **PERN**:
 
 ---
 
-## 📸 Capturas de Pantalla
 
-| Panel de Recepción | Estadísticas y KPIs |
-|:---:|:---:|
-| ![Recepción](https://via.placeholder.com/600x300/e5e7eb/333333?text=Panel+de+Recepcion+y+Accesos) | ![Stats](https://via.placeholder.com/600x300/e5e7eb/333333?text=Graficos+de+Rendimiento) |
-| *Control de acceso y check-in rápido* | *Análisis de crecimiento del gimnasio* |
-
-*(Nota: Puedes sustituir estos enlaces por capturas reales de tu proyecto)*
-
----
 
 ## 🚀 Instalación y Despliegue Local
 
@@ -71,7 +62,9 @@ Si deseas ejecutar este proyecto en tu máquina local, sigue estos pasos:
 ```bash
 git clone [https://github.com/AlexTorres8/gym-manager.git](https://github.com/AlexTorres8/gym-manager.git)
 cd gym-manager
-2. Configurar el Backend (Servidor)
+```
+
+#### 2. Configurar el Backend (Servidor)
 Ve a la carpeta del servidor e instala las dependencias:
 
 ```bash
@@ -79,9 +72,11 @@ Ve a la carpeta del servidor e instala las dependencias:
 
 cd server
 npm install
+```
+
 Crea un archivo llamado .env dentro de la carpeta server con tus credenciales de base de datos (Neon):
 
-Fragmento de código
+```bash
 
 DB_USER=tu_usuario_neon
 DB_PASSWORD=tu_password_neon
@@ -91,12 +86,12 @@ DB_PORT=5432
 DB_SSL=true
 PORT=3001
 Inicia el servidor backend:
+```
 
 ```bash
-
-
 node index.js
-3. Configurar el Frontend (Cliente)
+```
+### 3. Configurar el Frontend (Cliente)
 Abre una nueva terminal, ve a la carpeta del cliente e instala las dependencias:
 
 ```bash
@@ -104,22 +99,26 @@ Abre una nueva terminal, ve a la carpeta del cliente e instala las dependencias:
 
 cd client
 npm install
+```
 Crea un archivo llamado .env dentro de la carpeta client:
 
-Fragmento de código
+```bash
 
 VITE_APP_PASSWORD=tu_contraseña_maestra
+```
 Abre el archivo src/App.jsx y asegúrate de que la variable API_URL apunta a tu servidor local:
 
-JavaScript
 
+```bash
 const API_URL = 'http://localhost:3001';
+```
 Inicia la aplicación web:
 
 ```bash
 
 
 npm run dev
+```
 🔮 Próximos Pasos (Roadmap)
 [ ] Integración con Stripe para cobros automáticos recurrentes.
 
