@@ -5,13 +5,10 @@ import './App.css'
 // --- 🔒 CONTRASEÑA MAESTRA ---
 const APP_PASSWORD = import.meta.env.VITE_APP_PASSWORD;
 
-// --- 🌍 CONFIGURACIÓN DE CONEXIÓN ---
-
-// 🏠 MODO LOCAL (Para probar en tu PC - Comenta la de abajo y descomenta esta):
-// const API_URL = 'http://localhost:3001';
-
-// ☁️ MODO NUBE (Para Internet - Descomenta esta y comenta la de arriba):
-const API_URL = 'https://api-gym-fitness.onrender.com'; // <--- TU URL CORRECTA
+// --- 🌍 CONFIGURACIÓN INTELIGENTE ---
+const API_URL = import.meta.env.MODE === 'development'
+  ? 'http://localhost:3001'
+  : 'https://api-gym-fitness.onrender.com'; // <--- ASEGÚRATE QUE ESTA ES TU URL DE RENDER
 
 
 function App() {
@@ -37,7 +34,8 @@ function App() {
   // Edición
   const [editingClient, setEditingClient] = useState(null)
   
-  const [clientForm, setClientForm] = useState({ first_name: '', last_name: '', email: '', phone: '', dni: '' })
+  // Formulario con enfermedades
+  const [clientForm, setClientForm] = useState({ first_name: '', last_name: '', email: '', phone: '', dni: '', medical_conditions: '' })
   const [selectedUser, setSelectedUser] = useState(null)
   const [selectedPlanId, setSelectedPlanId] = useState('')
 
@@ -159,7 +157,7 @@ function App() {
       if (response.ok) {
         alert('¡Cliente creado!')
         setShowClientModal(false)
-        setClientForm({ first_name: '', last_name: '', email: '', phone: '', dni: '' })
+        setClientForm({ first_name: '', last_name: '', email: '', phone: '', dni: '', medical_conditions: '' })
         setQuery(clientForm.first_name) 
       } else { alert('Error al crear') }
     } catch (error) { alert('Error de conexión') }
@@ -296,6 +294,10 @@ function App() {
                             {user.last_plan ? user.last_plan : 'Sin plan registrado'}
                             {user.last_expiration_date && ` - Vence: ${new Date(user.last_expiration_date).toLocaleDateString()}`}
                           </p>
+                          {/* AVISO DE ENFERMEDAD EN TARJETA */}
+                          {(user.medical_conditions && user.medical_conditions.length > 0) && (
+                              <div style={{ marginTop: '5px', color: '#d32f2f', fontWeight: 'bold', fontSize: '0.8rem' }}>⚠️ ALERTA MÉDICA</div>
+                          )}
                       </div>
                       <div className="card-actions">
                          <button onClick={() => handleCheckIn(user.id)} className="nav-btn" style={{ background: user.status === 'ACTIVO' ? '#16a34a' : '#9ca3af', color: 'white' }}>Entrada ➡️</button>
@@ -335,7 +337,7 @@ function App() {
               <button onClick={() => setShowClientModal(true)} className="action-btn">+ Nuevo Socio</button>
             </div>
             <table className="visits-table" style={{ marginTop: '20px' }}>
-                <thead><tr style={{ background: '#f8f9fa' }}><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr style={{ background: '#f8f9fa' }}><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Estado</th><th>Salud</th><th>Acciones</th></tr></thead>
                 <tbody>
                     {allClients.map(client => (
                         <tr key={client.id}>
@@ -343,6 +345,12 @@ function App() {
                             <td style={{ color: '#666' }}>{client.dni || '-'}</td>
                             <td style={{ color: '#666' }}>{client.phone || '-'}</td>
                             <td><span style={{ padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: getStatusColor(client.status), color: getStatusTextColor(client.status) }}>{client.status}</span></td>
+                            <td>
+                                {(client.medical_conditions && client.medical_conditions.length > 0) 
+                                    ? <span title={client.medical_conditions} style={{cursor:'help'}}>⚠️ SÍ</span> 
+                                    : <span style={{color:'#ccc'}}>OK</span>
+                                }
+                            </td>
                             <td><button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>✏️ Editar</button></td>
                         </tr>
                     ))}
@@ -386,7 +394,7 @@ function App() {
       {/* MODALES */}
       {showClientModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{maxHeight:'90vh', overflowY:'auto'}}>
             <h2>Nuevo Socio</h2>
             <form onSubmit={handleCreateClient} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <input className="form-input" required placeholder="Nombre" value={clientForm.first_name} onChange={e => setClientForm({...clientForm, first_name: e.target.value})} />
@@ -394,6 +402,19 @@ function App() {
               <input className="form-input" type="email" placeholder="Email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} />
               <input className="form-input" placeholder="Teléfono" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} />
               <input className="form-input" placeholder="DNI" value={clientForm.dni} onChange={e => setClientForm({...clientForm, dni: e.target.value})} />
+              
+              {/* ENFERMEDADES CREAR */}
+              <div style={{ background: '#fff0f0', padding: '10px', borderRadius: '8px', border: '1px solid #ffcccc' }}>
+                <label style={{ fontWeight: 'bold', color: '#d32f2f', display: 'block', marginBottom: '8px' }}>¿Tiene lesiones o enfermedades?</label>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <button type="button" onClick={() => setClientForm({...clientForm, has_medical_check: true})} style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid #ccc', background: clientForm.has_medical_check ? '#d32f2f' : 'white', color: clientForm.has_medical_check ? 'white' : 'black', cursor: 'pointer' }}>SÍ</button>
+                    <button type="button" onClick={() => setClientForm({...clientForm, has_medical_check: false, medical_conditions: ''})} style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid #ccc', background: !clientForm.has_medical_check ? '#2563eb' : 'white', color: !clientForm.has_medical_check ? 'white' : 'black', cursor: 'pointer' }}>NO</button>
+                </div>
+                {clientForm.has_medical_check && (
+                    <textarea className="form-input" placeholder="Describe la lesión o enfermedad..." value={clientForm.medical_conditions} onChange={e => setClientForm({...clientForm, medical_conditions: e.target.value})} style={{ minHeight: '60px', fontFamily: 'sans-serif' }} />
+                )}
+              </div>
+
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="submit" className="action-btn" style={{flex:1}}>Guardar</button>
                 <button type="button" onClick={() => setShowClientModal(false)} className="nav-btn" style={{flex:1, background:'#ccc'}}>Cancelar</button>
@@ -422,56 +443,41 @@ function App() {
         </div>
       )}
 
-      {/* --- MODAL EDITAR MEJORADO PARA MÓVIL (Con Scroll y Compacto) --- */}
+      {/* EDITAR CLIENTE */}
       {editingClient && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxHeight: '85vh', overflowY: 'auto', padding: '20px' }}>
             <h2 style={{ marginTop: 0 }}>📝 Modificar Datos</h2>
             <form onSubmit={handleUpdateClient} className="form-group">
-              
-              {/* FILA 1: Nombre y Apellidos (Juntos) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                      <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Nombre:</label>
-                      <input className="form-input" value={editingClient.first_name} onChange={e => setEditingClient({...editingClient, first_name: e.target.value})} />
-                  </div>
-                  <div>
-                      <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Apellidos:</label>
-                      <input className="form-input" value={editingClient.last_name} onChange={e => setEditingClient({...editingClient, last_name: e.target.value})} />
-                  </div>
+                  <div><label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Nombre:</label><input className="form-input" value={editingClient.first_name} onChange={e => setEditingClient({...editingClient, first_name: e.target.value})} /></div>
+                  <div><label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Apellidos:</label><input className="form-input" value={editingClient.last_name} onChange={e => setEditingClient({...editingClient, last_name: e.target.value})} /></div>
               </div>
-
-              {/* FILA 2: DNI y Teléfono (Juntos) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-                  <div>
-                    <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>DNI:</label>
-                    <input className="form-input" value={editingClient.dni || ''} onChange={e => setEditingClient({...editingClient, dni: e.target.value})} />
-                  </div>
-                  <div>
-                    <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Teléfono:</label>
-                    <input className="form-input" value={editingClient.phone} onChange={e => setEditingClient({...editingClient, phone: e.target.value})} />
-                  </div>
+                  <div><label style={{fontWeight:'bold', fontSize:'0.8rem'}}>DNI:</label><input className="form-input" value={editingClient.dni || ''} onChange={e => setEditingClient({...editingClient, dni: e.target.value})} /></div>
+                  <div><label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Teléfono:</label><input className="form-input" value={editingClient.phone} onChange={e => setEditingClient({...editingClient, phone: e.target.value})} /></div>
               </div>
-
-              <div style={{ marginTop: '10px' }}>
-                  <label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Email:</label>
-                  <input className="form-input" value={editingClient.email} onChange={e => setEditingClient({...editingClient, email: e.target.value})} />
+              <div style={{ marginTop: '10px' }}><label style={{fontWeight:'bold', fontSize:'0.8rem'}}>Email:</label><input className="form-input" value={editingClient.email} onChange={e => setEditingClient({...editingClient, email: e.target.value})} /></div>
+              
+              {/* ENFERMEDADES EDITAR */}
+              <div style={{ marginTop: '15px', background: '#fff0f0', padding: '10px', borderRadius: '8px', border: '1px solid #ffcccc' }}>
+                <label style={{ fontWeight: 'bold', color: '#d32f2f', fontSize: '0.9rem' }}>🏥 Historial Médico / Lesiones:</label>
+                <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
+                    <button type="button" onClick={() => setEditingClient({...editingClient, medical_conditions: editingClient.medical_conditions || ' '})} style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid #ccc', background: (editingClient.medical_conditions && editingClient.medical_conditions.length > 0) ? '#d32f2f' : 'white', color: (editingClient.medical_conditions && editingClient.medical_conditions.length > 0) ? 'white' : 'black' }}>SÍ</button>
+                    <button type="button" onClick={() => setEditingClient({...editingClient, medical_conditions: ''})} style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid #ccc', background: (!editingClient.medical_conditions || editingClient.medical_conditions.length === 0) ? '#2563eb' : 'white', color: (!editingClient.medical_conditions || editingClient.medical_conditions.length === 0) ? 'white' : 'black' }}>NO</button>
+                </div>
+                {(editingClient.medical_conditions && editingClient.medical_conditions.length > 0) && (
+                    <textarea className="form-input" placeholder="Describe la lesión..." value={editingClient.medical_conditions} onChange={e => setEditingClient({...editingClient, medical_conditions: e.target.value})} style={{ minHeight: '60px', fontFamily: 'sans-serif' }} />
+                )}
               </div>
               
-              <div style={{ marginTop: '15px', backgroundColor: '#eff6ff', padding: '10px', borderRadius: '6px' }}>
-                  <label style={{fontWeight:'bold', fontSize:'0.9rem', color:'#2563eb', display:'block'}}>📅 Nuevo Vencimiento:</label>
-                  <input type="date" className="form-input" value={editingClient.expiration_date || ''} onChange={e => setEditingClient({...editingClient, expiration_date: e.target.value})} style={{marginTop:'5px'}} />
-              </div>
-
+              <div style={{ marginTop: '15px', backgroundColor: '#eff6ff', padding: '10px', borderRadius: '6px' }}><label style={{fontWeight:'bold', fontSize:'0.9rem', color:'#2563eb', display:'block'}}>📅 Nuevo Vencimiento:</label><input type="date" className="form-input" value={editingClient.expiration_date || ''} onChange={e => setEditingClient({...editingClient, expiration_date: e.target.value})} style={{marginTop:'5px'}} /></div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button type="submit" className="action-btn" style={{flex:1}}>Guardar</button>
                 <button type="button" onClick={() => setEditingClient(null)} className="nav-btn" style={{flex:1, background:'#ccc'}}>Cancelar</button>
               </div>
             </form>
-            
-            <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                <button type="button" onClick={handleDeleteClient} style={{ width: '100%', padding: '12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>🗑️ Eliminar este Cliente</button>
-            </div>
+            <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}><button type="button" onClick={handleDeleteClient} style={{ width: '100%', padding: '12px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>🗑️ Eliminar este Cliente</button></div>
           </div>
         </div>
       )}
