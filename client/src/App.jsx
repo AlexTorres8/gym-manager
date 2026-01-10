@@ -39,8 +39,10 @@ function App() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [selectedPlanId, setSelectedPlanId] = useState('')
 
+
   // --- ESTADOS DE ESTADÍSTICAS ---
   const [stats, setStats] = useState(null)
+  const [filterType, setFilterType] = useState('all'); // 'all', 'active', 'expired', 'this_month', 'next_month'
 
   // --- 🔒 EFECTO DE SEGURIDAD AL INICIAR ---
   useEffect(() => {
@@ -257,6 +259,35 @@ function App() {
     )
   }
 
+  const getFilteredClients = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    return allClients.filter(client => {
+      // Si no tiene fecha, solo sale en "Todos"
+      if (!client.last_expiration_date) return filterType === 'all';
+      
+      const expDate = new Date(client.last_expiration_date);
+      
+      switch (filterType) {
+        case 'active': return client.status === 'ACTIVO';
+        case 'expired': return client.status === 'INACTIVO';
+        case 'this_month': 
+          // Caducan este mes (y año)
+          return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
+        case 'next_month': 
+          // Caducan el mes que viene (cuidado con diciembre/enero)
+          const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+          return expDate.getMonth() === nextMonthDate.getMonth() && expDate.getFullYear() === nextMonthDate.getFullYear();
+        default: return true; // 'all'
+      }
+    });
+  };
+
+  const filteredList = getFilteredClients();
+
+
   // --- APP PRINCIPAL ---
   return (
     <div className="main-container">
@@ -329,21 +360,51 @@ function App() {
         </div>
       )}
 
-      {/* VISTA LISTA COMPLETA */}
+      {/* VISTA LISTA COMPLETA CON FILTROS */}
       {currentView === 'list' && (
         <div style={{ animation: 'fadeIn 0.3s' }}>
-            <div className="section-header">
-              <h2>Directorio de Socios ({allClients.length})</h2>
-              <button onClick={() => setShowClientModal(true)} className="action-btn">+ Nuevo Socio</button>
+            <div className="section-header" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <h2 style={{ margin: 0 }}>Directorio ({filteredList.length})</h2>
+              
+              {/* --- FILTRO NUEVO --- */}
+              <select 
+                value={filterType} 
+                onChange={(e) => setFilterType(e.target.value)}
+                style={{ padding: '10px', borderRadius: '8px', border: '1px solid #2563eb', color: '#2563eb', fontWeight: 'bold', cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="all">👥 Todos los Socios</option>
+                <option value="active">✅ Solo Activos</option>
+                <option value="expired">🔴 Solo Vencidos</option>
+                <option value="this_month">📅 Caducan ESTE MES</option>
+                <option value="next_month">🔮 Caducan MES SIGUIENTE</option>
+              </select>
+
+              <button onClick={() => setShowClientModal(true)} className="action-btn" style={{ marginLeft: 'auto' }}>+ Nuevo Socio</button>
             </div>
+
             <table className="visits-table" style={{ marginTop: '20px' }}>
-                <thead><tr style={{ background: '#f8f9fa' }}><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Estado</th><th>Salud</th><th>Acciones</th></tr></thead>
+                <thead>
+                  <tr style={{ background: '#f8f9fa' }}>
+                    <th>Nombre</th>
+                    <th>DNI</th>
+                    <th>Vencimiento</th> {/* Añadida columna para ver la fecha */}
+                    <th>Estado</th>
+                    <th>Salud</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
                 <tbody>
-                    {allClients.map(client => (
+                    {/* ¡OJO! AQUI USAMOS LA LISTA FILTRADA 👇 */}
+                    {filteredList.map(client => (
                         <tr key={client.id}>
                             <td style={{ fontWeight: 'bold' }}>{client.first_name} {client.last_name}</td>
                             <td style={{ color: '#666' }}>{client.dni || '-'}</td>
-                            <td style={{ color: '#666' }}>{client.phone || '-'}</td>
+                            
+                            {/* Fecha de vencimiento coloreada */}
+                            <td style={{ fontWeight: 'bold', color: filterType.includes('month') ? '#d97706' : '#666' }}>
+                              {client.last_expiration_date ? new Date(client.last_expiration_date).toLocaleDateString() : '-'}
+                            </td>
+
                             <td><span style={{ padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: getStatusColor(client.status), color: getStatusTextColor(client.status) }}>{client.status}</span></td>
                             <td>
                                 {(client.medical_conditions && client.medical_conditions.length > 0) 
@@ -354,6 +415,9 @@ function App() {
                             <td><button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>✏️ Editar</button></td>
                         </tr>
                     ))}
+                    {filteredList.length === 0 && (
+                      <tr><td colSpan="6" style={{textAlign:'center', padding:'20px', color:'#888'}}>No hay socios con este filtro.</td></tr>
+                    )}
                 </tbody>
             </table>
         </div>

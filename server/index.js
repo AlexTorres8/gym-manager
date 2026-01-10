@@ -103,14 +103,15 @@ app.put('/api/clients/:id', async (req, res) => {
     }
 });
 
-// OBTENER TODOS (LISTA COMPLETA) - ¡Aquí también ponemos las gafas!
+// OBTENER TODOS (LISTA COMPLETA)
 app.get('/api/clients-all', async (req, res) => {
     try {
         const query = `
             SELECT * FROM (
                 SELECT DISTINCT ON (c.id)
                     c.id, c.first_name, c.last_name, c.email, c.phone, c.dni, 
-                    c.medical_conditions, -- <--- ¡IMPORTANTE! LEER ENFERMEDAD
+                    c.medical_conditions,
+                    s.end_date as last_expiration_date,  
                     p.name as last_plan,
                     CASE 
                         WHEN s.end_date >= CURRENT_DATE THEN 'ACTIVO'
