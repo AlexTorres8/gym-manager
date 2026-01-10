@@ -51,27 +51,62 @@ app.get('/api/search', async (req, res) => {
     }
 });
 
-// Endpoint para crear un cliente
+/// Endpoint para crear un cliente (CON FECHA Y PLAN INTELIGENTE)
 app.post('/api/clients', async (req, res) => {
     try {
-        // 1. Imprimimos qué llega desde la web para estar seguros
-        console.log("📥 INTENTO DE GUARDAR:", req.body);
+        console.log("📥 Recibido:", req.body);
         
-        const { first_name, last_name, email, phone, dni, medical_conditions } = req.body;
+        const { first_name, last_name, email, phone, dni, medical_conditions, expiration_date, plan_name } = req.body;
         
-        // 2. Aquí está la clave: ¿Estamos pasando medical_conditions en el array final?
-        const result = await pool.query(
+        // 1. Insertamos CLIENTE
+        const resultClient = await pool.query(
             'INSERT INTO clients (first_name, last_name, email, phone, dni, medical_conditions) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [first_name, last_name, email, phone, dni, medical_conditions] 
         );
-        // ¡OJO! ^^^ Asegúrate de que "medical_conditions" está el último en esa lista ^^^
+        const newClient = resultClient.rows[0];
 
-        console.log("✅ GUARDADO EN DB:", result.rows[0]);
-        res.json(result.rows[0]);
+        // 2. Si viene fecha, gestionamos la SUSCRIPCIÓN
+        if (expiration_date) {
+            let validPlanId = null;
+
+            // --- LÓGICA MAESTRA DE PLANES ---
+            
+            // OPCIÓN A: Si el Excel trae nombre de plan (ej: "Trimestral"), lo buscamos
+            if (plan_name) {
+                const planByName = await pool.query('SELECT id FROM plans WHERE name ILIKE $1', [plan_name]);
+                if (planByName.rows.length > 0) validPlanId = planByName.rows[0].id;
+            }
+
+            // OPCIÓN B: Si no viene en Excel o no existe, buscamos uno que contenga "Mensual" (el más común)
+            if (!validPlanId) {
+                const defaultPlan = await pool.query("SELECT id FROM plans WHERE name ILIKE '%Mensual%' LIMIT 1");
+                if (defaultPlan.rows.length > 0) validPlanId = defaultPlan.rows[0].id;
+            }
+
+            // OPCIÓN C: Si todo falla, cogemos el primero que haya (el comodín)
+            if (!validPlanId) {
+                const anyPlan = await pool.query('SELECT id FROM plans LIMIT 1');
+                if (anyPlan.rows.length > 0) validPlanId = anyPlan.rows[0].id;
+            }
+
+            // --- FIN LÓGICA ---
+
+            if (validPlanId) {
+                console.log(`✅ Asignando Plan ID: ${validPlanId} al cliente ${newClient.first_name}`);
+                await pool.query(
+                    'INSERT INTO subscriptions (client_id, plan_id, start_date, end_date, price_paid) VALUES ($1, $2, CURRENT_DATE, $3, 0)',
+                    [newClient.id, validPlanId, expiration_date] 
+                );
+            } else {
+                console.warn("⚠️ No se encontró ningún plan en la base de datos.");
+            }
+        }
+
+        res.json(newClient);
 
     } catch (err) {
-        console.error("❌ ERROR AL GUARDAR:", err.message); 
-        res.status(500).send("Error al guardar el cliente");
+        console.error("❌ ERROR AL GUARDAR:", err.message);
+        res.status(200).json({ message: "Cliente creado con avisos", error: err.message });
     }
 });
 

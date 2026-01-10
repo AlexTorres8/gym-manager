@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import './App.css'
 
@@ -313,6 +314,80 @@ function App() {
   }
 
 
+  // --- IMPORTAR EXCEL (CON FECHAS) ---
+  const handleExcelUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const bstr = evt.target.result;
+      
+      // 1. LEER COMO FECHAS REALES (Importante: cellDates: true)
+      const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws);
+
+      console.log("📂 Datos Excel:", data);
+
+      if (confirm(`Voy a importar ${data.length} socios. ¿Seguro?`)) {
+        let exito = 0;
+        let fallos = 0;
+
+        for (const row of data) {
+          
+          // 2. TRUCO PARA LA FECHA
+          let fechaVencimiento = row['Vencimiento'] || row['vencimiento'] || '';
+          
+          // CORRECCIÓN DE UN DÍA MENOS
+          if (fechaVencimiento && fechaVencimiento instanceof Date) {
+             // Le sumamos 12 horas para evitar que al pasar a UTC caiga en el día anterior
+             fechaVencimiento.setHours(fechaVencimiento.getHours() + 12);
+             
+             // Ahora sí lo convertimos a texto
+             fechaVencimiento = fechaVencimiento.toISOString().split('T')[0];
+          }
+
+          let rawPhone = row['Telefono'] || row['telefono'] || row['Teléfono'] || row['teléfono'] || row['Phone'] || '';
+          let phoneString = rawPhone !== '' ? String(rawPhone) : '';
+
+          const clientData = {
+            first_name: row['Nombre'] || row['nombre'],
+            last_name: row['Apellido'] || row['apellido'],
+            dni: row['DNI'] || row['dni'],
+            phone: phoneString,
+            email: row['Email'] || row['email'] || '',
+            medical_conditions: row['Salud'] || row['salud'] || '',
+            expiration_date: fechaVencimiento,
+            plan_name: row['Plan'] || row['plan'] || ''
+          };
+
+          if (!clientData.first_name) continue;
+
+          try {
+            const response = await fetch(`${API_URL}/api/clients`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(clientData)
+            });
+
+            if (response.ok) exito++;
+            else fallos++;
+          } catch (error) {
+            fallos++;
+          }
+        }
+
+        alert(`✅ Proceso terminado.\nImportados: ${exito}\nFallos: ${fallos}`);
+        fetchClients();
+      }
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = null; 
+  };
+
+
   // --- APP PRINCIPAL ---
   return (
     <div className="main-container">
@@ -404,7 +479,25 @@ function App() {
                 <option value="next_month">🔮 Caducan MES SIGUIENTE</option>
               </select>
 
-              <button onClick={() => setShowClientModal(true)} className="action-btn" style={{ marginLeft: 'auto' }}>+ Nuevo Socio</button>
+              {/* --- BOTÓN IMPORTAR EXCEL --- */}
+              <div style={{ marginRight: '10px' }}>
+                  <label 
+                    htmlFor="excel-upload" 
+                    className="action-btn" 
+                    style={{ background: '#107c41', cursor: 'pointer', display: 'inline-block' }}
+                  >
+                    📊 Importar Excel
+                  </label>
+                  <input 
+                    id="excel-upload" 
+                    type="file" 
+                    accept=".xlsx, .xls" 
+                    onChange={handleExcelUpload} 
+                    style={{ display: 'none' }} // Ocultamos el input feo
+                  />
+              </div>
+
+              <button onClick={() => setShowClientModal(true)} className="action-btn" >+ Nuevo Socio</button>
             </div>
 
             <table className="visits-table" style={{ marginTop: '20px' }}>
@@ -416,7 +509,7 @@ function App() {
                     <th>Estado</th>
                     <th>Salud</th>
                     <th>Acciones</th>
-                    <th>Aviso</th> {/* <--- NUEVA COLUMNA */}
+                    <th>Aviso</th> 
                   </tr>
                 </thead>
                 <tbody>
