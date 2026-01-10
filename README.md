@@ -120,6 +120,7 @@ Inicia la aplicación web:
 npm run dev
 ```
 🔮 Próximos Pasos (Roadmap)
+
 [ ] Integración con Stripe para cobros automáticos recurrentes.
 
 [ ] Portal del Socio para que los clientes consulten su estado desde casa.
