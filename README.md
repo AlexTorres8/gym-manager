@@ -85,9 +85,9 @@ DB_NAME=neondb
 DB_PORT=5432
 DB_SSL=true
 PORT=3001
-Inicia el servidor backend:
 ```
 
+Inicia el servidor backend:
 ```bash
 node index.js
 ```
