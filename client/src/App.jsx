@@ -288,6 +288,31 @@ function App() {
   const filteredList = getFilteredClients();
 
 
+  // --- FUNCIÓN WHATSAPP ---
+  const sendWhatsAppReminder = (client) => {
+    if (!client.phone) return alert("❌ Este socio no tiene teléfono guardado.");
+    
+    // 1. Limpiamos el número (quitamos espacios o guiones)
+    let cleanPhone = client.phone.replace(/\D/g, '');
+    
+    // 2. Si no tiene prefijo de país (34 España), se lo ponemos (opcional)
+    if (!cleanPhone.startsWith('34') && cleanPhone.length === 9) {
+        cleanPhone = '34' + cleanPhone;
+    }
+
+    // 3. Preparamos el mensaje
+    const fecha = client.last_expiration_date 
+        ? new Date(client.last_expiration_date).toLocaleDateString() 
+        : 'su fecha';
+    
+    const texto = `Hola ${client.first_name}! 👋 Te recordamos desde ${GYM_NAME} que tu cuota vence el día ${fecha}. ¿Te renovamos? 🏋️`;
+
+    // 4. Abrimos WhatsApp
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
+
+
   // --- APP PRINCIPAL ---
   return (
     <div className="main-container">
@@ -387,37 +412,89 @@ function App() {
                   <tr style={{ background: '#f8f9fa' }}>
                     <th>Nombre</th>
                     <th>DNI</th>
-                    <th>Vencimiento</th> {/* Añadida columna para ver la fecha */}
+                    <th>Vencimiento</th>
                     <th>Estado</th>
                     <th>Salud</th>
                     <th>Acciones</th>
+                    <th>Aviso</th> {/* <--- NUEVA COLUMNA */}
                   </tr>
                 </thead>
                 <tbody>
-                    {/* ¡OJO! AQUI USAMOS LA LISTA FILTRADA 👇 */}
                     {filteredList.map(client => (
                         <tr key={client.id}>
                             <td style={{ fontWeight: 'bold' }}>{client.first_name} {client.last_name}</td>
                             <td style={{ color: '#666' }}>{client.dni || '-'}</td>
                             
-                            {/* Fecha de vencimiento coloreada */}
                             <td style={{ fontWeight: 'bold', color: filterType.includes('month') ? '#d97706' : '#666' }}>
                               {client.last_expiration_date ? new Date(client.last_expiration_date).toLocaleDateString() : '-'}
                             </td>
 
                             <td><span style={{ padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: getStatusColor(client.status), color: getStatusTextColor(client.status) }}>{client.status}</span></td>
+                            
                             <td>
                                 {(client.medical_conditions && client.medical_conditions.length > 0) 
                                     ? <span title={client.medical_conditions} style={{cursor:'help'}}>⚠️ SÍ</span> 
                                     : <span style={{color:'#ccc'}}>OK</span>
                                 }
                             </td>
-                            <td><button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>✏️ Editar</button></td>
+                            
+                            <td>
+                                <button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>✏️ Editar</button>
+                            </td>
+
+                           {/* --- COLUMNA AVISO (NIVEL DIOS / SIN EMOJIS EN CODIGO) --- */}
+                            <td>
+                                {client.phone ? (() => {
+                                    // 1. Limpieza de número
+                                    let cleanPhone = client.phone.replace(/\D/g, '');
+                                    if (!cleanPhone.startsWith('34') && cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
+                                    
+                                    // 2. Datos
+                                    const nombre = client.first_name;
+                                    const gym = (typeof GYM_NAME !== 'undefined') ? GYM_NAME : 'el gimnasio';
+                                    const fecha = client.last_expiration_date ? new Date(client.last_expiration_date).toLocaleDateString() : 'breve';
+                                    
+                                    // 3. TRUCO DE MAGIA: DECODIFICACIÓN ASCII
+                                    // Esto convierte texto seguro en Emojis reales justo en el momento de crear el link.
+                                    // No depende de tu archivo ni de VSCode.
+                                    const mano = decodeURIComponent("%F0%9F%91%8B"); // 👋
+                                    const pesa = decodeURIComponent("%F0%9F%8F%8B%EF%B8%8F"); // 🏋️
+
+                                    // 4. Construimos el mensaje con variables limpias
+                                    const mensaje = `Hola ${nombre}! ${mano} Te recordamos desde ${gym} que tu cuota vence el ${fecha}. ¿Te renovamos? ${pesa}`;
+
+                                    // 5. Usamos la API Larga que gestiona mejor la codificación
+                                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(mensaje)}`;
+                                    
+                                    return (
+                                        <a 
+                                            href={whatsappUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ 
+                                                textDecoration: 'none',
+                                                padding: '6px 12px', 
+                                                background: '#25D366', 
+                                                color: 'white', 
+                                                borderRadius: '20px', 
+                                                fontWeight: 'bold', 
+                                                fontSize: '0.85rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '5px',
+                                                width: 'fit-content'
+                                            }}
+                                        >
+                                            📞 Avisar
+                                        </a>
+                                    );
+                                })() : (
+                                    <span style={{color: '#ccc', fontSize: '0.8rem'}}>Sin Tlf</span>
+                                )}
+                            </td>
                         </tr>
                     ))}
-                    {filteredList.length === 0 && (
-                      <tr><td colSpan="6" style={{textAlign:'center', padding:'20px', color:'#888'}}>No hay socios con este filtro.</td></tr>
-                    )}
                 </tbody>
             </table>
         </div>
