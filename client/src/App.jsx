@@ -9,7 +9,7 @@ const APP_PASSWORD = import.meta.env.VITE_APP_PASSWORD;
 // --- 🌍 CONFIGURACIÓN INTELIGENTE ---
 const API_URL = import.meta.env.MODE === 'development'
   ? 'http://localhost:3001'
-  : 'https://api-gym-fitness.onrender.com'; // <--- ASEGÚRATE QUE ESTA ES TU URL DE RENDER
+  : 'https://api-gym-fitness.onrender.com'; 
 
 
 function App() {

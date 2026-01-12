@@ -229,6 +229,34 @@ app.delete('/api/clients/:id', async (req, res) => {
 
 app.get('/', (req, res) => { res.send('✅ Servidor Activo'); });
 
+
+// --- BOT ANTI-SIESTA 🤖☕ ---
+// 1. Ruta "Health Check" (Una ruta ligera que no gasta recursos)
+app.get('/health', (req, res) => {
+    res.send('Estoy vivo y despierto! 💪');
+});
+
+// 2. El Cron Job (El despertador)
+// Solo se activa si estamos en la nube (no en tu ordenador de casa)
+if (process.env.NODE_ENV !== 'development') {
+    
+    // 👇👇👇 CAMBIA ESTO POR TU URL REAL DE RENDER 👇👇👇
+    const MY_RENDER_URL = 'https://api-gym-fitness.onrender.com'; 
+
+    const INTERVALO = 14 * 60 * 1000; // 14 minutos (Render duerme a los 15)
+
+    setInterval(() => {
+        console.log('⏰ "Ding-dong" - Despertando al servidor...');
+        
+        // Usamos fetch para llamarnos a nosotros mismos
+        fetch(`${MY_RENDER_URL}/health`)
+            .then(res => console.log(`✅ Servidor despierto. Status: ${res.status}`))
+            .catch(err => console.error(`❌ Error al despertar: ${err.message}`));
+
+    }, INTERVALO);
+}
+
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor API corriendo y escuchando en el puerto ${PORT}`);
