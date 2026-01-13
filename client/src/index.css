@@ -31,3 +31,69 @@ body {
   width: 100%;
   margin: 0 auto;
 }
+
+/* --- ESTILOS MÓVIL (RESPONSIVE) --- */
+@media (max-width: 768px) {
+  
+  /* 1. Ajustes generales del contenedor */
+  #root {
+    padding: 10px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: stretch !important; /* Estirar botones a lo ancho */
+  }
+
+  .section-header button, 
+  .section-header .action-btn,
+  .section-header select {
+    width: 100%; /* Botones grandes fáciles de tocar */
+    margin: 5px 0 !important;
+    text-align: center;
+  }
+
+  /* 2. TRANSFORMACIÓN DE TABLA A TARJETAS */
+  .visits-table {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .visits-table thead {
+    display: none; /* Ocultamos la cabecera (Nombre, DNI, etc) */
+  }
+
+  .visits-table tbody tr {
+    display: block;
+    background: white;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra suave */
+    padding: 10px;
+    border: 1px solid #eee;
+  }
+
+  .visits-table td {
+    display: flex;
+    justify-content: space-between; /* Etiqueta a la izq, dato a la der */
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: right;
+  }
+
+  .visits-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* 3. ETIQUETAS AUTOMÁTICAS */
+  /* El truco: leemos el atributo 'data-label' del HTML y lo ponemos delante */
+  .visits-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    margin-right: 15px;
+  }
+}

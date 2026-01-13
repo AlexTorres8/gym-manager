@@ -466,7 +466,7 @@ function App() {
             <div className="section-header" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <h2 style={{ margin: 0 }}>Directorio ({filteredList.length})</h2>
               
-              {/* --- FILTRO NUEVO --- */}
+              {/* --- FILTRO --- */}
               <select 
                 value={filterType} 
                 onChange={(e) => setFilterType(e.target.value)}
@@ -479,12 +479,27 @@ function App() {
                 <option value="next_month">🔮 Caducan MES SIGUIENTE</option>
               </select>
 
-              {/* --- BOTÓN IMPORTAR EXCEL --- */}
-              <div style={{ marginRight: '10px' }}>
+              {/* --- BOTONES DE ACCIÓN (Ahora del mismo tamaño y estilo) --- */}
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                  
+                  {/* 1. Botón IMPORTAR EXCEL */}
                   <label 
                     htmlFor="excel-upload" 
                     className="action-btn" 
-                    style={{ background: '#107c41', cursor: 'pointer', display: 'inline-block' }}
+                    style={{ 
+                        background: '#107c41', 
+                        cursor: 'pointer', 
+                        display: 'flex',             // Para centrar texto verticalmente
+                        alignItems: 'center',        // Centrado vertical
+                        justifyContent: 'center',    // Centrado horizontal
+                        padding: '10px 20px',        // Relleno estándar
+                        minWidth: '150px',           // Ancho mínimo igual al otro
+                        height: '42px',              // Altura fija para que sean iguales
+                        boxSizing: 'border-box',
+                        color: 'white',
+                        borderRadius: '5px',
+                        fontWeight: 'bold'
+                    }}
                   >
                     📊 Importar Excel
                   </label>
@@ -493,11 +508,31 @@ function App() {
                     type="file" 
                     accept=".xlsx, .xls" 
                     onChange={handleExcelUpload} 
-                    style={{ display: 'none' }} // Ocultamos el input feo
+                    style={{ display: 'none' }} 
                   />
-              </div>
 
-              <button onClick={() => setShowClientModal(true)} className="action-btn" >+ Nuevo Socio</button>
+                  {/* 2. Botón NUEVO SOCIO */}
+                  <button 
+                    onClick={() => setShowClientModal(true)} 
+                    className="action-btn"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '10px 20px',
+                        minWidth: '150px',           // Ancho mínimo igual al otro
+                        height: '42px',              // Altura fija
+                        border: 'none',
+                        background: '#2563eb',       // Azul estándar
+                        color: 'white',
+                        borderRadius: '5px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                    }}
+                  >
+                    + Nuevo Socio
+                  </button>
+              </div>
             </div>
 
             <table className="visits-table" style={{ marginTop: '20px' }}>
@@ -515,48 +550,50 @@ function App() {
                 <tbody>
                     {filteredList.map(client => (
                         <tr key={client.id}>
-                            <td style={{ fontWeight: 'bold' }}>{client.first_name} {client.last_name}</td>
-                            <td style={{ color: '#666' }}>{client.dni || '-'}</td>
+                            <td data-label="Nombre" style={{ fontWeight: 'bold' }}>
+                                {client.first_name} {client.last_name}
+                            </td>
                             
-                            <td style={{ fontWeight: 'bold', color: filterType.includes('month') ? '#d97706' : '#666' }}>
+                            <td data-label="DNI" style={{ color: '#666' }}>
+                                {client.dni || '-'}
+                            </td>
+                            
+                            <td data-label="Vencimiento" style={{ fontWeight: 'bold', color: filterType.includes('month') ? '#d97706' : '#666' }}>
                               {client.last_expiration_date ? new Date(client.last_expiration_date).toLocaleDateString() : '-'}
                             </td>
 
-                            <td><span style={{ padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: getStatusColor(client.status), color: getStatusTextColor(client.status) }}>{client.status}</span></td>
+                            <td data-label="Estado">
+                                <span style={{ padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: getStatusColor(client.status), color: getStatusTextColor(client.status) }}>
+                                    {client.status}
+                                </span>
+                            </td>
                             
-                            <td>
+                            <td data-label="Salud">
                                 {(client.medical_conditions && client.medical_conditions.length > 0) 
                                     ? <span title={client.medical_conditions} style={{cursor:'help'}}>⚠️ SÍ</span> 
                                     : <span style={{color:'#ccc'}}>OK</span>
                                 }
                             </td>
                             
-                            <td>
-                                <button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>✏️ Editar</button>
+                            <td data-label="Acciones">
+                                <button onClick={() => { const dateStr = client.last_expiration_date ? new Date(client.last_expiration_date).toISOString().split('T')[0] : ''; setEditingClient({ ...client, expiration_date: dateStr }); }} style={{ padding: '5px 10px', border: '1px solid #ddd', background: 'white', borderRadius: '4px', cursor: 'pointer' }}>
+                                    ✏️ Editar
+                                </button>
                             </td>
 
-                           {/* --- COLUMNA AVISO (NIVEL DIOS / SIN EMOJIS EN CODIGO) --- */}
-                            <td>
+                            {/* --- BOTÓN WHATSAPP (Columna Aviso) --- */}
+                            <td data-label="Contacto">
                                 {client.phone ? (() => {
-                                    // 1. Limpieza de número
                                     let cleanPhone = client.phone.replace(/\D/g, '');
                                     if (!cleanPhone.startsWith('34') && cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
                                     
-                                    // 2. Datos
                                     const nombre = client.first_name;
                                     const gym = (typeof GYM_NAME !== 'undefined') ? GYM_NAME : 'el gimnasio';
                                     const fecha = client.last_expiration_date ? new Date(client.last_expiration_date).toLocaleDateString() : 'breve';
                                     
-                                    // 3. TRUCO DE MAGIA: DECODIFICACIÓN ASCII
-                                    // Esto convierte texto seguro en Emojis reales justo en el momento de crear el link.
-                                    // No depende de tu archivo ni de VSCode.
-                                    const mano = decodeURIComponent("%F0%9F%91%8B"); // 👋
-                                    const pesa = decodeURIComponent("%F0%9F%8F%8B%EF%B8%8F"); // 🏋️
-
-                                    // 4. Construimos el mensaje con variables limpias
+                                    const mano = decodeURIComponent("%F0%9F%91%8B");
+                                    const pesa = decodeURIComponent("%F0%9F%8F%8B%EF%B8%8F");
                                     const mensaje = `Hola ${nombre}! ${mano} Te recordamos desde ${gym} que tu cuota vence el ${fecha}. ¿Te renovamos? ${pesa}`;
-
-                                    // 5. Usamos la API Larga que gestiona mejor la codificación
                                     const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(mensaje)}`;
                                     
                                     return (
@@ -574,9 +611,10 @@ function App() {
                                                 fontSize: '0.85rem',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                justifyContent: 'center',
+                                                justifyContent: 'center', // Centrado en móvil
                                                 gap: '5px',
-                                                width: 'fit-content'
+                                                width: 'fit-content',
+                                                marginLeft: 'auto' // Para que se vaya a la derecha en móvil
                                             }}
                                         >
                                             📞 Avisar
@@ -586,6 +624,7 @@ function App() {
                                     <span style={{color: '#ccc', fontSize: '0.8rem'}}>Sin Tlf</span>
                                 )}
                             </td>
+
                         </tr>
                     ))}
                 </tbody>
